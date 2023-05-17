@@ -5,6 +5,7 @@ import numpy as np
 import sys
 sys.path.append("tflite/")
 import Model
+from tfl_op_names import TFL_OP_NAMES
 
 def load_model_from_file(model_filename):
   with open(model_filename, "rb") as file:
@@ -45,11 +46,10 @@ for subgraph in model.subgraphs:
       if tensor_last_read[input] == -1:
         tensor_last_read[input] = step
 
-  print(tensor_first_write)
-  print(tensor_last_read)
-
   for step, operator in enumerate(operators):
     total_memory = 0
+    op_code = model.operatorCodes[operator.opcodeIndex].builtinCode
+    op_name = TFL_OP_NAMES[op_code]
     for tensor_index, tensor in enumerate(tensors):
       first_write = tensor_first_write[tensor_index]
       last_read = tensor_last_read[tensor_index]
@@ -62,4 +62,4 @@ for subgraph in model.subgraphs:
       for dim in shape:
         element_count *= dim
       total_memory += element_count
-    print("%d: %s elements" % (step, f'{total_memory:,}'))
+    print("%d\t%s\t%s" % (step, op_name, f'{total_memory:,}'))
